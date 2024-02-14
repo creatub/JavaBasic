@@ -33,9 +33,33 @@ public class ChatHandler extends Thread {
 			//모든 접속자에게 방금 입장한 사람의 닉네임을 쏴줍시다
 			String msg = "##["+nick+"]님이 입장했습니다##";
 			broadcast(msg);
+			while(!isStop) {
+				//클이 보내오는 메시지를 듣고
+				//모든 접속자에게 해당 메시지를 보내주자
+				String cmsg=in.readLine();
+				broadcast(nick+">>"+cmsg);
+				//퇴장 메시지가 온 경우
+				if(cmsg.startsWith("##[")&&cmsg.contains("퇴장")) {
+					closeAll();
+					//퇴장하는 이와 통신하는 챗핸들러를 userList에서 삭제
+					break;
+				}
+				
+			}//while-----
+			
 		} catch (Exception e) {
 			System.out.println("run error 2:"+e);
+			closeAll();
 		}
+	}//run()------------------
+	public void closeAll(){ // throws하면 위에 catch구문에서 또 try catch해야 함
+		try {
+			isStop=true;
+			if(in!=null) in.close();
+			if(out!=null) out.close();
+			if(sock!=null) sock.close();
+			userList.remove(this);
+		}catch(Exception e) {}
 	}
 	//여러 개의 Thread가 동시접속하여 메시지를 보낼 때 대화 메시지를 순차적으로 전송하기 위함
 	//synchronized 제한자(modifier)를 붙여준다.
